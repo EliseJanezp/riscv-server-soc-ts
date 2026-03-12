@@ -26,17 +26,11 @@ payload()
   uint32_t index;
   uint32_t hart_index = val_hart_get_index_mpid(val_hart_get_mpid());
   uint32_t iommu_num = val_iommu_get_num();
-  uint64_t base_addr, reg_cap;
+  uint64_t reg_cap;
 
   for (index = 0; index < iommu_num; index++) {
     if (val_iommu_get_info (index, IOMMU_INFO_TYPE) == EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU) {
-      base_addr = val_iommu_get_info (index, IOMMU_INFO_BASE_ADDRESS);
-
-      /* Map the IOMMU memory-mapped register region */
-      val_print(ACS_PRINT_INFO, "\n       IOMMU base: 0x%lx", base_addr);
-      val_memory_map_add_mmio(base_addr, 0x1000);
-
-      reg_cap = val_mmio_read64(base_addr + RISCV_IOMMU_REG_CAP);
+      reg_cap = val_iommu_read_iommu_reg(index, RISCV_IOMMU_REG_CAP, 2);
       val_print(ACS_PRINT_INFO, "\n       IOMMU reg_cap - 0x%lx", reg_cap);
       if ((reg_cap & RISCV_IOMMU_CAP_VERSION_MSK) != RISCV_IOMMU_CAP_VERSION_1_0) {
         val_print(ACS_PRINT_ERR, "\n       Incorrect IOMMU version - 0x%x", (reg_cap & RISCV_IOMMU_CAP_VERSION_MSK));

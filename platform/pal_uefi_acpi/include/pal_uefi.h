@@ -122,17 +122,34 @@ typedef struct {
   UINT32  num_of_iommu;
 } IOMMU_INFO_HDR;
 
+/**
+  @brief  ID Mapping Structure
+**/
+typedef struct {
+  UINT32  sourceid_base;
+  UINT32  numids;
+  UINT32  destid_base;
+  UINT32  destiommu_offset;
+} ID_MAPPTING_TABLE;
+
 typedef struct {
   UINT32  iommu_num;  ///< info entry index
   UINT8   type;
   UINT16  id;
 
   /* IOMMU device specific */
+  UINT32  iommu_offset;
   UINT64  hardware_id;
   UINT64  base_address;
   UINT32  flags;
+  UINT16  pcie_seg;
+  UINT16  pcie_bdf;
 
-  /* PCIe Root Complex specific */
+  /* PCIe Root Complex or PLatform device specific */
+  UINT16  idmap_offset;
+  UINT16  idmap_num;
+  UINT16  pcie_rc_seg;
+  ID_MAPPTING_TABLE id_mapping_table[];
 } IOMMU_INFO_ENTRY;
 
 typedef struct {

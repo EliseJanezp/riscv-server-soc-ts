@@ -87,12 +87,27 @@ int      val_suspend_pe(uint64_t entry, uint32_t context_id);
 typedef enum {
   IOMMU_INFO_TYPE=1,
   IOMMU_INFO_BASE_ADDRESS,
+  IOMMU_INFO_FLAGS,
+  IOMMU_INFO_PCIE_SEG,
+  IOMMU_INFO_PCIE_BDF,
+  IOMMU_INFO_IOMMU_OFFSET,
 }IOMMU_INFO_e;
+
+typedef enum {
+  IOMMU_INFO_PCIE_RC_SEG=1,
+  IOMMU_INFO_SOURCE_ID_BASE,
+  IOMMU_INFO_NUM_IDS,
+  IOMMU_INFO_DEST_ID_BASE,
+  IOMMU_INFO_DEST_IOMMU_OFFSET
+}PCIERC_PLATFORM_INFO_e;
+
 uint32_t val_iommu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint32_t val_iommu_create_info_table(uint64_t *iommu_info_table);
 void     val_iommu_free_info_table(void);
 uint32_t val_iommu_get_num(void);
 uint64_t val_iommu_get_info(int32_t index, IOMMU_INFO_e info_type);
+uint64_t val_iommu_read_iommu_reg(uint32_t index, uint32_t offset, uint32_t num);
+void val_iommu_write_iommu_reg(uint32_t index, uint32_t offset, uint32_t num, uint64_t data);
 
 /* IIC VAL APIs */
 uint32_t    val_gic_create_info_table(uint64_t *gic_info_table);

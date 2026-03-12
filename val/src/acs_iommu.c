@@ -5,6 +5,10 @@
 
 IOMMU_INFO_TABLE  *g_iommu_info_table;
 
+void val_memory_map_add_mmio (uint64_t  Address, uint64_t  Length);
+uint32_t val_pcie_bar_mem_read(uint32_t bdf, uint64_t address, uint32_t *data);
+uint32_t val_pcie_bar_mem_write(uint32_t bdf, uint64_t address, uint32_t data);
+
 /**
   @brief   This API executes all the IOMMU tests sequentially
            1. Caller       -  Application layer.
@@ -88,7 +92,7 @@ val_iommu_free_info_table(void)
            1. Caller       -  Application layer, test Suite.
            2. Prerequisite -  val_hart_create_info_table.
   @param   none
-  @return  the number of hart discovered
+  @return  the number of iommu node discovered
 **/
 uint32_t
 val_iommu_get_num()
@@ -97,6 +101,22 @@ val_iommu_get_num()
       return 0;
   }
   return g_iommu_info_table->header.num_of_iommu;
+}
+
+/**
+  @brief   This API returns the number of IOMMU from the g_iommu_info_table.
+           1. Caller       -  Application layer, test Suite.
+           2. Prerequisite -  val_hart_create_info_table.
+  @param   none
+  @return  the number of idmap table discovered
+**/
+uint16_t
+val_iommu_get_idmap_num(int32_t index)
+{
+  if (g_iommu_info_table == NULL) {
+      return 0;
+  }
+  return g_iommu_info_table->iommu_info[index].idmap_num;
 }
 
 /**
@@ -120,7 +140,164 @@ val_iommu_get_info(int32_t index, IOMMU_INFO_e info_type)
         return g_iommu_info_table->iommu_info[index].type;
     case IOMMU_INFO_BASE_ADDRESS:
         return g_iommu_info_table->iommu_info[index].base_address;
+    case IOMMU_INFO_FLAGS:
+        return g_iommu_info_table->iommu_info[index].flags;
+    case IOMMU_INFO_PCIE_SEG:
+        return g_iommu_info_table->iommu_info[index].pcie_seg;
+    case IOMMU_INFO_PCIE_BDF:
+        return g_iommu_info_table->iommu_info[index].pcie_bdf;
+    case IOMMU_INFO_IOMMU_OFFSET:
+        return g_iommu_info_table->iommu_info[index].iommu_offset;
     default:
       return 0;
   }
+}
+
+/**
+  @brief   This API is a single point of entry to retrieve
+           information stored in the IOMMU Info idmap table
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_hart_create_info_table
+  @param   index  IOMMU index in the table
+  @param   idmap_index  IDMAP index in the table
+  @param   type   the type of information being requested
+  @return  64-bit data
+**/
+uint64_t
+val_iommu_get_pcierc_platform_info(int32_t index, int32_t idmap_index, PCIERC_PLATFORM_INFO_e info_type)
+{
+  if (g_iommu_info_table == NULL)
+      return 0;
+
+  switch (info_type) {
+    case IOMMU_INFO_PCIE_RC_SEG:
+        return g_iommu_info_table->iommu_info[index].pcie_rc_seg;
+    case IOMMU_INFO_SOURCE_ID_BASE:
+        return g_iommu_info_table->iommu_info[index].id_mapping_table[idmap_index].sourceid_base;
+    case IOMMU_INFO_NUM_IDS:
+        return g_iommu_info_table->iommu_info[index].id_mapping_table[idmap_index].numids;
+    case IOMMU_INFO_DEST_ID_BASE:
+        return g_iommu_info_table->iommu_info[index].id_mapping_table[idmap_index].destid_base;
+    case IOMMU_INFO_DEST_IOMMU_OFFSET:
+        return g_iommu_info_table->iommu_info[index].id_mapping_table[idmap_index].destiommu_offset;
+    default:
+      return 0;
+  }
+}
+
+/**
+  @brief   This API is a single point of entry to get iommu reg value
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_hart_create_info_table
+  @param   index  IOMMU index in the table
+  @param   offset  offset of the register to be read
+  @param   num  number of dword to be read
+  @return  64-bit data
+**/
+uint64_t
+val_iommu_read_iommu_reg(uint32_t index, uint32_t offset, uint32_t num)
+{
+  uint32_t flags = 0;
+  uint64_t base_addr = 0;
+  uint16_t pcie_seg = 0;
+  uint16_t pcie_bdf = 0;
+  uint32_t bdf = 0;
+  uint64_t reg_value = 0;
+  uint64_t datahigh, datalow;
+
+  if (g_iommu_info_table == NULL)
+      return 0;
+  if ((offset > 1024) || (num > 2))
+      return 0;
+
+  if (val_iommu_get_info (index, IOMMU_INFO_TYPE) == EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU) {
+      flags = val_iommu_get_info (index, IOMMU_INFO_FLAGS);
+      // val_print(ACS_PRINT_INFO, "\n       IOMMU FLAGS: 0x%x", flags);
+      if ((flags & 0x01) == 0) { // IOMMU is implemented as a platform device
+        base_addr = val_iommu_get_info (index, IOMMU_INFO_BASE_ADDRESS);
+        /* Map the IOMMU memory-mapped register region */
+        val_memory_map_add_mmio(base_addr, 0x1000);
+        if (num == 1) {
+          reg_value = val_mmio_read(base_addr + offset);
+        } else if (num == 2) {
+          reg_value = val_mmio_read64(base_addr + offset);
+        }
+      } else if ((flags & 0x01) == 1) { // IOMMU is implemented as a PCIe device
+        pcie_seg = val_iommu_get_info (index, IOMMU_INFO_PCIE_SEG);
+        pcie_bdf = val_iommu_get_info (index, IOMMU_INFO_PCIE_BDF);
+        // val_print(ACS_PRINT_INFO, "\n       IOMMU PCIE_RID: 0x%x", pcie_bdf);
+        // pcie_bdf(PRID format bus << 8 dev << 3 func) transfer to pcie format(seg << 24 bus << 16 dev << 8 func)
+        bdf = ((pcie_seg << 24) | (pcie_bdf & 0xff00) << 8) | ((pcie_bdf & 0x00f8) << 5) | ((pcie_bdf & 0x0007));
+        // val_print(ACS_PRINT_INFO, "\n       IOMMU pcie_bdf: 0x%x", bdf);
+        val_pcie_get_mmio_bar (bdf, &base_addr);
+        if (num == 1) {
+          val_pcie_bar_mem_read (bdf, base_addr + offset, (uint32_t *)&reg_value);
+        } else if (num == 2) {
+          val_pcie_bar_mem_read (bdf, base_addr + offset, (uint32_t *)&datalow);
+          val_pcie_bar_mem_read (bdf, base_addr + offset + 4, (uint32_t *)&datahigh);
+          reg_value = ((datahigh & 0xffffffff) << 32) | (datalow & 0xffffffff);
+        }
+      }
+  }
+  // val_print(ACS_PRINT_INFO, "\n       IOMMU base: 0x%lx", base_addr);
+  // val_print(ACS_PRINT_INFO, "\n       IOMMU REG: 0x%x", reg_value);
+
+  return reg_value;
+}
+
+/**
+  @brief   This API is a single point of entry to get iommu reg value
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_hart_create_info_table
+  @param   index  IOMMU index in the table
+  @param   offset  offset of the register to be read
+  @param   num  number of dword to be read
+  @return  64-bit data
+**/
+void
+val_iommu_write_iommu_reg(uint32_t index, uint32_t offset, uint32_t num, uint64_t data)
+{
+  uint32_t flags = 0;
+  uint64_t base_addr = 0;
+  uint16_t pcie_seg = 0;
+  uint16_t pcie_bdf = 0;
+  uint32_t bdf = 0;
+
+  if (g_iommu_info_table == NULL)
+      return;
+  if ((offset > 1024) || (num > 2))
+      return;
+
+  if (val_iommu_get_info (index, IOMMU_INFO_TYPE) == EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU) {
+      flags = val_iommu_get_info (index, IOMMU_INFO_FLAGS);
+      // val_print(ACS_PRINT_INFO, "\n       IOMMU FLAGS: 0x%x", flags);
+      if ((flags & 0x01) == 0) { // IOMMU is implemented as a platform device
+        base_addr = val_iommu_get_info (index, IOMMU_INFO_BASE_ADDRESS);
+        /* Map the IOMMU memory-mapped register region */
+        val_memory_map_add_mmio(base_addr, 0x1000);
+        if (num == 1) {
+          val_mmio_write(base_addr + offset, (uint32_t)data);
+        } else if (num == 2) {
+          val_mmio_write64(base_addr + offset, (uint64_t)data);
+        }
+      } else if ((flags & 0x01) == 1) { // IOMMU is implemented as a PCIe device
+        pcie_seg = val_iommu_get_info (index, IOMMU_INFO_PCIE_SEG);
+        pcie_bdf = val_iommu_get_info (index, IOMMU_INFO_PCIE_BDF);
+        // val_print(ACS_PRINT_INFO, "\n       IOMMU PCIE_RID: 0x%x", pcie_bdf);
+        // pcie_bdf(PRID format bus << 8 dev << 3 func) transfer to pcie format(seg << 24 bus << 16 dev << 8 func)
+        bdf = ((pcie_seg << 24) | (pcie_bdf & 0xff00) << 8) | ((pcie_bdf & 0x00f8) << 5) | ((pcie_bdf & 0x0007));
+        // val_print(ACS_PRINT_INFO, "\n       IOMMU pcie_bdf: 0x%x", bdf);
+        val_pcie_get_mmio_bar (bdf, &base_addr);
+        if (num == 1) {
+          val_pcie_bar_mem_write (bdf, base_addr + offset, (uint32_t)data);
+        } else if (num == 2) {
+          val_pcie_bar_mem_write (bdf, base_addr + offset, (uint32_t)data);
+          val_pcie_bar_mem_write (bdf, base_addr + offset + 4, (uint32_t )((data & 0xffffffff00000000) >> 32));
+        }
+      }
+  }
+  // val_print(ACS_PRINT_INFO, "\n       IOMMU base: 0x%lx", base_addr);
+  // val_print(ACS_PRINT_INFO, "\n       IOMMU REG value: 0x%x", data);
+
+  return;
 }
