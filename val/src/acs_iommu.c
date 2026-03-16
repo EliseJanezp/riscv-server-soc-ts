@@ -54,6 +54,7 @@ val_iommu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       status |= os_iom017_entry(num_hart);
       status |= os_iom019_entry(num_hart);
       status |= os_iom022_entry(num_hart);
+      status |= os_iom024_entry(num_hart);
   }
   val_print_test_end(status, "IOMMU");
 
