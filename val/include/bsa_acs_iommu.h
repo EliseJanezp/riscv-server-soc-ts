@@ -24,4 +24,7 @@ os_iom005_entry(uint32_t num_hart);
 
 uint32_t
 os_iom008_entry(uint32_t num_hart);
+
+uint32_t
+os_iom011_entry(uint32_t num_hart);
 #endif
