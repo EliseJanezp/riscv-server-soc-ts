@@ -12,4 +12,10 @@ os_iom001_entry(uint32_t num_hart);
 
 uint32_t
 os_iom002_entry(uint32_t num_hart);
+
+uint32_t
+os_iom003_entry(uint32_t num_hart);
+
+uint32_t
+os_iom004_entry(uint32_t num_hart);
 #endif
