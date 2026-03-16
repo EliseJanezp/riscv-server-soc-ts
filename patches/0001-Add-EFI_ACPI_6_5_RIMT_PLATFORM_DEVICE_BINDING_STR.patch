@@ -1,0 +1,34 @@
+From a38900e9c0b3ecbe0708010755ed830b5d09295b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E9=83=91=E5=9F=B900354317?= <zheng.pei@zte.com.cn>
+Date: Mon, 16 Mar 2026 14:38:01 +0800
+Subject: [PATCH] 1. Add EFI_ACPI_6_5_RIMT_PLATFORM_DEVICE_BINDING_STRUCTURE
+ define
+
+---
+ MdePkg/Include/IndustryStandard/Acpi65.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/MdePkg/Include/IndustryStandard/Acpi65.h b/MdePkg/Include/IndustryStandard/Acpi65.h
+index 496c8048ec..06dddf40bd 100644
+--- a/MdePkg/Include/IndustryStandard/Acpi65.h
++++ b/MdePkg/Include/IndustryStandard/Acpi65.h
+@@ -3150,6 +3150,16 @@ typedef struct {
+   //EFI_ACPI_6_5_RIMT_ID_MAPPING_STRUCTURE    IdMappings[];
+ } EFI_ACPI_6_5_RIMT_PCIE_ROOT_COMPLEX_DEVICE_BINDING_STRUCTURE;
+ 
++///
++/// RIMT Platform Device Binding Structure
++///
++typedef struct {
++  EFI_ACPI_6_5_RIMT_DEVICE_HEADER Header;
++  UINT16      IdMappingOffset;
++  UINT16      IdMappingNumber;
++  //EFI_ACPI_6_5_RIMT_ID_MAPPING_STRUCTURE    IdMappings[];
++} EFI_ACPI_6_5_RIMT_PLATFORM_DEVICE_BINDING_STRUCTURE;
++
+ typedef struct {
+   UINT32      SourceIdBase;
+   UINT32      IdNumber;
+-- 
+2.27.0
+
