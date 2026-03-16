@@ -169,6 +169,7 @@
   ../test_pool/iommu/operating_system/test_os_iom013.c
   ../test_pool/iommu/operating_system/test_os_iom014.c
   ../test_pool/iommu/operating_system/test_os_iom017.c
+  ../test_pool/iommu/operating_system/test_os_iom019.c
   ../test_pool/iic/operating_system/test_os_i001.c
   ../test_pool/iic/operating_system/test_os_i002.c
   ../test_pool/iic/operating_system/test_os_i003.c
