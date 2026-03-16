@@ -105,9 +105,12 @@ uint32_t val_iommu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view);
 uint32_t val_iommu_create_info_table(uint64_t *iommu_info_table);
 void     val_iommu_free_info_table(void);
 uint32_t val_iommu_get_num(void);
+uint16_t val_iommu_get_idmap_num(int32_t index);
 uint64_t val_iommu_get_info(int32_t index, IOMMU_INFO_e info_type);
+uint64_t val_iommu_get_pcierc_platform_info(int32_t index, int32_t idmap_index, PCIERC_PLATFORM_INFO_e info_type);
 uint64_t val_iommu_read_iommu_reg(uint32_t index, uint32_t offset, uint32_t num);
 void val_iommu_write_iommu_reg(uint32_t index, uint32_t offset, uint32_t num, uint64_t data);
+uint8_t val_iommu_check_governing_iommu(uint32_t bdf, uint32_t *iommu_index);
 
 /* IIC VAL APIs */
 uint32_t    val_gic_create_info_table(uint64_t *gic_info_table);

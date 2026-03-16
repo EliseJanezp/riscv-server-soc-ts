@@ -43,6 +43,7 @@ val_iommu_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
   if (g_sw_view[G_SW_OS]) {
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
       status |= os_iom001_entry(num_hart);
+      status |= os_iom002_entry(num_hart);
   }
   val_print_test_end(status, "IOMMU");
 
@@ -300,4 +301,89 @@ val_iommu_write_iommu_reg(uint32_t index, uint32_t offset, uint32_t num, uint64_
   // val_print(ACS_PRINT_INFO, "\n       IOMMU REG value: 0x%x", data);
 
   return;
+}
+
+/**
+  @brief   This API is to check governing iommu offset
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_hart_create_info_table
+  @param   destiommu_offset  IOMMU offset
+  @return  8-bit data
+**/
+static
+uint8_t
+val_iommu_check_governing_iommu_offset(uint32_t destiommu_offset, uint32_t **iommu_index)
+{
+  uint32_t iommu_num = val_iommu_get_num();
+  uint32_t iommu_offset;
+  uint32_t index;
+
+  for (index = 0; index < iommu_num; index++) {
+    if (val_iommu_get_info (index, IOMMU_INFO_TYPE) == EFI_ACPI_6_5_RIMT_DEVICE_TYPE_IOMMU) {
+      iommu_offset = val_iommu_get_info (index, IOMMU_INFO_IOMMU_OFFSET);
+      if (destiommu_offset == iommu_offset) {
+        **iommu_index = index;
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/**
+  @brief   This API is to check governing iommu node
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_hart_create_info_table
+  @param   bdf  PCIe BDF
+  @param   iommu_index  Pointer of IOMMU index
+  @return  8-bit data
+**/
+uint8_t
+val_iommu_check_governing_iommu(uint32_t bdf, uint32_t *iommu_index)
+{
+  uint32_t index;
+  uint16_t pcie_rc_seg;
+  uint32_t sourceid_base;
+  uint32_t numids;
+  uint32_t destiommu_offset;
+  uint32_t iommu_num = val_iommu_get_num();
+  uint16_t prid;
+  uint16_t segment;
+  uint32_t idmap_index;
+  uint16_t idmap_num;
+
+  if (g_iommu_info_table == NULL)
+    return 0;
+
+  if (iommu_num == 0)
+    return 0;
+
+  // pcie format(seg << 24 bus << 16 dev << 8 func) transfer to prid(PRID format bus << 8 dev << 3 func)
+  segment = (bdf & 0xff000000) >> 24;
+  prid = ((bdf & 0x00ff0000) >> 8) | ((bdf & 0x0000ff00) >> 5) | (bdf & 0x000000ff);
+  val_print(ACS_PRINT_INFO, "\n       IOMMU PCIe PRID: 0x%x", prid);
+  for (index = 0; index < iommu_num; index++) {
+    if (val_iommu_get_info (index, IOMMU_INFO_TYPE) == EFI_ACPI_6_5_RIMT_DEVICE_TYPE_PCIE_ROOT_COMPLEX) {
+      pcie_rc_seg = val_iommu_get_pcierc_platform_info (index, 0, IOMMU_INFO_PCIE_RC_SEG);
+      idmap_num = val_iommu_get_idmap_num (index);
+      if ((pcie_rc_seg != segment) || (idmap_num == 0)) {
+        continue;
+      } else {
+        for (idmap_index = 0; idmap_index < idmap_num; idmap_index++) {
+          sourceid_base = val_iommu_get_pcierc_platform_info (index, idmap_index, IOMMU_INFO_SOURCE_ID_BASE);
+          numids = val_iommu_get_pcierc_platform_info (index, idmap_index, IOMMU_INFO_NUM_IDS);
+          val_print(ACS_PRINT_INFO, "\n       IOMMU PCIe SOURCE ID BASE: 0x%x", sourceid_base);
+          val_print(ACS_PRINT_INFO, "\n       IOMMU PCIe NUM IDS: 0x%x", numids);
+          if (prid <= (sourceid_base + numids)) {
+            destiommu_offset = val_iommu_get_pcierc_platform_info (index, idmap_index, IOMMU_INFO_DEST_IOMMU_OFFSET);
+            val_print(ACS_PRINT_INFO, "\n       IOMMU PCIe DEST IOMMU OFFSET: 0x%x", destiommu_offset);
+            return val_iommu_check_governing_iommu_offset(destiommu_offset, &iommu_index);
+          } else {
+            continue;
+          }
+        }
+      }
+    }
+  }
+  return 0;
 }
