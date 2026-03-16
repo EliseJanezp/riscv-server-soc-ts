@@ -74,6 +74,7 @@ void     val_hart_free_info_table(void);
 uint32_t val_hart_get_num(void);
 char8_t *val_hart_get_isa_string (uint32_t index);
 uint64_t val_hart_get_imsic_base (int32_t index);
+uint8_t val_hart_get_mmu_type (uint32_t index);
 uint64_t val_hart_get_mpid(void);
 uint32_t val_hart_get_index_mpid(uint64_t hart_id);
 uint32_t val_hart_install_esr(uint32_t exception_type, void (*esr)(uint64_t, void *));

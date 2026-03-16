@@ -201,6 +201,7 @@ typedef struct {
   uint64_t   imsic_base;      ///< Physical base address of the Incoming MSI Controller (IMSIC) MMIO region of this hart.
   uint32_t   imsic_size;      ///< Size in bytes of the IMSIC MMIO region of this hart.
   char8_t    isa_string[512]; ///< Null-terminated ASCII Instruction Set Architecture (ISA) string for this hart.
+  uint8_t    mmu_type;        ///< MMU type
 }HART_INFO_ENTRY;
 
 typedef struct {

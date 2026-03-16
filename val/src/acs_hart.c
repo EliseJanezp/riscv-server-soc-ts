@@ -414,6 +414,30 @@ val_hart_get_imsic_base (int32_t index)
 }
 
 /**
+ * @brief  This API returns the HART MMU Type
+           for a given HART index
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_create_peinfo_table
+ *
+ * @param index
+ * @return HART MMU Type
+ */
+uint8_t
+val_hart_get_mmu_type (uint32_t index)
+{
+  HART_INFO_ENTRY *entry;
+
+  if (index > g_hart_info_table->header.num_of_hart) {
+        val_report_status(index, RESULT_FAIL(0, 0xFF), NULL);
+        return 0;
+  }
+
+  entry = g_hart_info_table->hart_info;
+
+  return entry[index].mmu_type;
+}
+
+/**
   @brief   This API will call an assembly sequence with interval
            as argument over which an SPE event is exected to be generated.
            1. Caller       -  Test Suite
