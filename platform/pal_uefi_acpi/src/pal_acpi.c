@@ -371,3 +371,19 @@ pal_get_fadt_ptr (
 
   return 0;
 }
+
+/**
+  @brief   Iterate through the tables pointed by XSDT and return DSDT Table address
+  @param   None
+  @return  64-bit address of DSDT table
+  @retval  0:  DSDT table could not be found
+**/
+UINT64
+pal_get_dsdt_ptr (
+  VOID
+  )
+{
+  EFI_ACPI_6_5_FIXED_ACPI_DESCRIPTION_TABLE  *Fadt;
+  Fadt = (EFI_ACPI_6_5_FIXED_ACPI_DESCRIPTION_TABLE *)pal_get_fadt_ptr ();
+  return (UINT64)(Fadt->Dsdt);
+}

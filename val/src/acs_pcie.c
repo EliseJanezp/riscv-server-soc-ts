@@ -29,6 +29,8 @@ uint32_t pcie_bdf_table_list_flag;
 
 uint64_t
 pal_get_mcfg_ptr(void);
+uint64_t
+pal_get_dsdt_ptr(void);
 /**
   @brief   This API reads 32-bit data from PCIe config space pointed by Bus,
            Device, Function and register offset.
@@ -434,30 +436,14 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
 
       status |= os_p001_entry(num_hart);
-      if (status == ACS_STATUS_FAIL) {
-        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
-        return status;
-      }
       status |= os_p002_entry(num_hart);
-      if (status == ACS_STATUS_FAIL) {
-        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
-        return status;
-      }
       status |= os_p003_entry(num_hart);
-      if (status == ACS_STATUS_FAIL) {
-        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
-        return status;
-      }
       status |= os_p004_entry(num_hart);
-      if (status == ACS_STATUS_FAIL) {
-        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
-        return status;
-      }
       status |= os_p005_entry(num_hart);
-      if (status == ACS_STATUS_FAIL) {
-        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
-        return status;
-      }
+      status |= os_p006_entry(num_hart);
+      status |= os_p007_entry(num_hart);
+      status |= os_p008_entry(num_hart);
+      status |= os_p009_entry(num_hart);
   }
 
   // if (g_pcie_bdf_table->num_entries == 0) {
@@ -925,6 +911,8 @@ val_pcie_get_info(PCIE_INFO_e type, uint32_t index)
           return g_pcie_info_table->block[index].end_bus_num;
       case PCIE_INFO_SEGMENT:
           return g_pcie_info_table->block[index].segment_num;
+      case PCIE_INFO_DSDT_PTR:
+          return pal_get_dsdt_ptr();
       default:
           val_print(ACS_PRINT_ERR, "This PCIE info option not supported %d\n", type);
           break;

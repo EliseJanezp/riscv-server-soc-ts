@@ -177,7 +177,8 @@ typedef enum {
   PCIE_INFO_MCFG_ECAM,
   PCIE_INFO_START_BUS,
   PCIE_INFO_END_BUS,
-  PCIE_INFO_SEGMENT
+  PCIE_INFO_SEGMENT,
+  PCIE_INFO_DSDT_PTR
 }PCIE_INFO_e;
 
 uint64_t
@@ -237,6 +238,7 @@ uint32_t os_p003_entry(uint32_t num_hart);
 uint32_t os_p004_entry(uint32_t num_hart);
 uint32_t os_p005_entry(uint32_t num_hart);
 uint32_t os_p006_entry(uint32_t num_hart);
+uint32_t os_p007_entry(uint32_t num_hart);
 uint32_t os_p008_entry(uint32_t num_hart);
 uint32_t os_p009_entry(uint32_t num_hart);
 uint32_t os_p010_entry(uint32_t num_hart);
