@@ -161,6 +161,7 @@ typedef struct {
 } pcie_device_bdf_table;
 
 void     val_pcie_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
+void     val_pcie_write_cfg_width(uint32_t bdf, uint32_t offset, void *data, PCI_WIDTH_TYPE width);
 void     val_pcie_io_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data);
 uint32_t val_pcie_read_cfg(uint32_t bdf, uint32_t offset, uint32_t *data);
 uint32_t val_pcie_read_cfg_width(uint32_t bdf, uint32_t offset, void *data, PCI_WIDTH_TYPE width);

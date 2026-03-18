@@ -196,7 +196,7 @@
 #define ECID_ACS       0x000D
 #define ECID_ARICS     0x000E
 #define ECID_ATS       0x000F
-#define ECID_PRI       0x0013
+#define ECID_AF        0x0013
 #define ECID_PASID     0x001B
 #define ECID_DPC       0x001D
 #define ECID_DVSEC     0x0023
@@ -209,6 +209,8 @@
 #define DCTLR_OFFSET   0x8
 #define LCAPR_OFFSET   0xC
 #define LCTRLR_OFFSET  0x10
+#define RTCTRL_OFFSET  0x1C
+#define ROOTCP_OFFSET  0x1E
 #define DCAP2R_OFFSET  0x24
 #define DCTL2R_OFFSET  0x28
 #define LCAP2R_OFFSET  0x2C
@@ -367,6 +369,10 @@
 #define DCTL2R_AFE_MASK  0x1
 #define DCTL2R_AFE_NORMAL 0xFFDF
 
+/* Root Control Register */
+#define CSR_EN_SHIFT     (1 << 4)
+#define CSR_ENABLE       (1 << 4)
+
 /* Device bitmask definitions */
 #define RCiEP    (1 << 0b1001)
 #define RCEC     (1 << 0b1010)
@@ -379,6 +385,10 @@
 #define PCI_PCIE (1 << 0b1000)
 #define PCIE_PCI (1 << 0b0111)
 #define PCIe_ALL (iEP_RP | iEP_EP | RP | EP | RCEC | RCiEP)
+
+/* Link Control Register*/
+#define LINK_DISABLE_SHIFT      (1 << 4)
+#define LINK_DISABLE            (1 << 4)
 
 /* MSI-X Capabilities */
 #define MSI_X_ENABLE_SHIFT          31
@@ -403,5 +413,11 @@
 #define ATS_CTRL                    0x4
 #define ATS_CACHING_EN              (1 << 31)
 #define ATS_CACHING_DIS             0x7FFFFFFF
+
+/* Advance Features Capabilities */
+#define AF_CAPABILITY_OFFSET        0x3
+#define FLR_CAP_EN                  (1 << 1)
+#define AF_CTRL                     0x4
+#define FLR_EN                      (1 << 0)
 
 #endif

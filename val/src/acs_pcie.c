@@ -194,6 +194,79 @@ val_pcie_write_cfg(uint32_t bdf, uint32_t offset, uint32_t data)
 }
 
 /**
+  @brief   This API writes 32-bit data to PCIe config space pointed by Bus,
+           Device, Function , register offset, and data width.
+           1. Caller       -  Test Suite
+           2. Prerequisite -  val_pcie_create_info_table
+  @param   bdf    - concatenated Bus(8-bits), device(8-bits) & function(8-bits)
+  @param   offset - Register offset within a device PCIe config space
+  @param   data   - data to be written to the config space
+  @param   width   - data width
+
+  @return  None
+**/
+void
+val_pcie_write_cfg_width(uint32_t bdf, uint32_t offset, void *data, PCI_WIDTH_TYPE width)
+{
+  uint32_t bus      = PCIE_EXTRACT_BDF_BUS(bdf);
+  uint32_t dev      = PCIE_EXTRACT_BDF_DEV(bdf);
+  uint32_t func     = PCIE_EXTRACT_BDF_FUNC(bdf);
+  uint32_t segment  = PCIE_EXTRACT_BDF_SEG(bdf);
+  uint32_t cfg_addr;
+  addr_t   ecam_base = 0;
+  uint32_t i = 0;
+
+
+  if ((bus >= PCIE_MAX_BUS) || (dev >= PCIE_MAX_DEV) || (func >= PCIE_MAX_FUNC)) {
+     val_print(ACS_PRINT_ERR, "\n       Invalid Bus/Dev/Func  %x", bdf);
+     return;
+  }
+
+  if (g_pcie_info_table == NULL) {
+      val_print(ACS_PRINT_ERR, "\n       Write PCIe_CFG: PCIE info table is not created", 0);
+      return;
+  }
+
+  while (i < (uint32_t)val_pcie_get_info(PCIE_INFO_NUM_ECAM, 0))
+  {
+
+      if ((bus >= (uint32_t)val_pcie_get_info(PCIE_INFO_START_BUS, i)) &&
+           (bus <= (uint32_t)val_pcie_get_info(PCIE_INFO_END_BUS, i)) &&
+           (segment == (uint32_t)val_pcie_get_info(PCIE_INFO_SEGMENT, i))) {
+          ecam_base = val_pcie_get_info(PCIE_INFO_ECAM, i);
+          break;
+      }
+      i++;
+  }
+
+  if (ecam_base == 0) {
+      val_print(ACS_PRINT_ERR, "\n       PCIe_CFG_WR ECAM Base is zero %.8x", bdf);
+      return;
+  }
+
+  /* There are 8 functions / device, 32 devices / Bus and each has a 4KB config space */
+  cfg_addr = (bus * PCIE_MAX_DEV * PCIE_MAX_FUNC * 4096) + \
+               (dev * PCIE_MAX_FUNC * 4096) + (func * 4096);
+
+    switch (width) {
+    case PCI_WIDTH_UINT8:
+      pal_mmio_write8(ecam_base + cfg_addr + offset, *(uint8_t *)data);
+      break;
+    case PCI_WIDTH_UINT16:
+      pal_mmio_write16(ecam_base + cfg_addr + offset, *(uint16_t *)data);
+      break;
+    case PCI_WIDTH_UINT32:
+      pal_mmio_write(ecam_base + cfg_addr + offset, *(uint32_t *)data);
+      break;
+    case PCI_WIDTH_UINT64:
+      pal_mmio_write64(ecam_base + cfg_addr + offset, *(uint64_t *)data);
+      break;
+
+  }
+
+}
+
+/**
   @brief   Write 32bit data to PCIe config space pointed by Bus,
            Device, Function and offset using UEFI PciIoProtocol interface
            1. Caller       -  Test Suite
@@ -361,6 +434,26 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       val_print(ACS_PRINT_ERR, "\nOperating System View:\n", 0);
 
       status |= os_p001_entry(num_hart);
+      if (status == ACS_STATUS_FAIL) {
+        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
+        return status;
+      }
+      status |= os_p002_entry(num_hart);
+      if (status == ACS_STATUS_FAIL) {
+        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
+        return status;
+      }
+      status |= os_p003_entry(num_hart);
+      if (status == ACS_STATUS_FAIL) {
+        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
+        return status;
+      }
+      status |= os_p004_entry(num_hart);
+      if (status == ACS_STATUS_FAIL) {
+        val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
+        return status;
+      }
+      status |= os_p005_entry(num_hart);
       if (status == ACS_STATUS_FAIL) {
         val_print(ACS_PRINT_WARN, "\n      *** Skipping remaining PCIE tests ***\n", 0);
         return status;
