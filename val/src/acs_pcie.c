@@ -448,6 +448,18 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       status |= os_p011_entry(num_hart);
       status |= os_p012_entry(num_hart);
       status |= os_p013_entry(num_hart);
+      status |= os_p014_entry(num_hart);
+      status |= os_p015_entry(num_hart);
+      status |= os_p016_entry(num_hart);
+      status |= os_p017_entry(num_hart);
+      status |= os_p018_entry(num_hart);
+      status |= os_p019_entry(num_hart);
+      status |= os_p020_entry(num_hart);
+      status |= os_p021_entry(num_hart);
+      status |= os_p022_entry(num_hart);
+      status |= os_p023_entry(num_hart);
+      status |= os_p024_entry(num_hart);
+      status |= os_p025_entry(num_hart);
   }
 
   // if (g_pcie_bdf_table->num_entries == 0) {

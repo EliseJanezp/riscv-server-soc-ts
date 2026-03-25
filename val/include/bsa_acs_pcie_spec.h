@@ -196,6 +196,7 @@
 #define ECID_ACS       0x000D
 #define ECID_ARICS     0x000E
 #define ECID_ATS       0x000F
+#define ECID_SRIOV     0x0010
 #define ECID_AF        0x0013
 #define ECID_PASID     0x001B
 #define ECID_DPC       0x001D
@@ -264,6 +265,8 @@
 #define DPC_TRIGGER_SHIFT      0x1
 #define DPC_DISABLE_MASK       0xFFFCFFFF
 #define DPC_INTR_ENABLE        0x80000
+#define DPC_RP_EXT_OFFSET      0x5
+#define DPC_RP_EXT_MASK        0x1
 
 /* AER Capability struct offsets and shifts */
 #define AER_UNCORR_STATUS_OFFSET 0x4
@@ -420,5 +423,16 @@
 #define FLR_CAP_EN                  (1 << 1)
 #define AF_CTRL                     0x4
 #define FLR_EN                      (1 << 0)
+
+/* RCEC Endpoint Association Capabilities */
+#define RCEC_EA_CAP_OFFSET          0x0
+#define RCEC_EA_CAP_VER_SHIFT       (16)
+#define RCEC_EA_CAP_VER_MASK        0xF
+#define RCEC_EA_BITMAP_OFFSET       0x4
+#define RCEC_EA_BUS_OFFSET          0x8
+#define RCEC_EA_NEXT_BUS_SHIFT      (8)
+#define RCEC_EA_NEXT_BUS_MASK       0xFF
+#define RCEC_EA_LAST_BUS_SHIFT      (16)
+#define RCEC_EA_LAST_BUS_MASK       0xFF
 
 #endif
