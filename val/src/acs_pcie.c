@@ -444,6 +444,10 @@ val_pcie_execute_tests(uint32_t num_hart, uint32_t *g_sw_view)
       status |= os_p007_entry(num_hart);
       status |= os_p008_entry(num_hart);
       status |= os_p009_entry(num_hart);
+      status |= os_p010_entry(num_hart);
+      status |= os_p011_entry(num_hart);
+      status |= os_p012_entry(num_hart);
+      status |= os_p013_entry(num_hart);
   }
 
   // if (g_pcie_bdf_table->num_entries == 0) {

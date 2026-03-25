@@ -212,6 +212,10 @@
   ../test_pool/pcie/operating_system/riscv/test_os_p007.c
   ../test_pool/pcie/operating_system/riscv/test_os_p008.c
   ../test_pool/pcie/operating_system/riscv/test_os_p009.c
+  ../test_pool/pcie/operating_system/riscv/test_os_p010.c
+  ../test_pool/pcie/operating_system/riscv/test_os_p011.c
+  ../test_pool/pcie/operating_system/riscv/test_os_p012.c
+  ../test_pool/pcie/operating_system/riscv/test_os_p013.c
   # ../test_pool/pcie/operating_system/test_os_p002.c
   # ../test_pool/pcie/operating_system/test_os_p003.c
   # ../test_pool/pcie/operating_system/test_os_p006.c

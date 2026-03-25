@@ -199,6 +199,7 @@
 #define ECID_AF        0x0013
 #define ECID_PASID     0x001B
 #define ECID_DPC       0x001D
+#define ECID_PTM       0x001E
 #define ECID_DVSEC     0x0023
 
 /* PCI Express capability struct offsets */
